@@ -1,0 +1,313 @@
+/* Stride Mobility - Signature Pad & Canvas Styles
+ * Supports Touch, Stylus, High-DPI Retina, and Fullscreen Landscape
+ */
+
+.signature-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.signature-card {
+  background: var(--stride-surface-card);
+  border: 2px solid var(--stride-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.2s ease;
+}
+
+.signature-card.is-active {
+  border-color: var(--stride-accent);
+}
+
+.signature-card.is-signed {
+  border-color: var(--stride-success);
+}
+
+/* Canvas Toolbar */
+.signature-toolbar {
+  padding: 10px 14px;
+  background: var(--stride-surface-elevated);
+  border-bottom: 1px solid var(--stride-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.signature-title-label {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--stride-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sig-status-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--stride-warning);
+}
+
+.sig-status-indicator.signed {
+  background: var(--stride-success);
+}
+
+.sig-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sig-btn {
+  background: var(--stride-surface-card);
+  border: 1px solid var(--stride-border);
+  color: var(--stride-text-muted);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.sig-btn:hover {
+  background: var(--stride-surface-elevated);
+  color: var(--stride-text);
+  border-color: var(--stride-border-hover);
+}
+
+.sig-btn.sig-btn-danger:hover {
+  border-color: var(--stride-red);
+  color: var(--stride-red);
+}
+
+/* Canvas Wrapper */
+.signature-canvas-wrapper {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  background-color: var(--canvas-bg);
+  cursor: crosshair;
+  touch-action: none; /* Crucial: Prevents phone scrolling while drawing */
+}
+
+.signature-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Signature Guide Line */
+.signature-guide-line {
+  position: absolute;
+  bottom: 36px;
+  left: 30px;
+  right: 30px;
+  height: 1px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--canvas-line),
+    var(--canvas-line) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.signature-guide-marker {
+  position: absolute;
+  bottom: 30px;
+  left: 14px;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--canvas-line);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.signature-placeholder-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--stride-text-subtle);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 0.2s ease;
+  text-align: center;
+}
+
+.signature-card.is-signed .signature-placeholder-hint,
+.signature-card.is-active .signature-placeholder-hint {
+  opacity: 0;
+}
+
+/* Signer Details / Summary Below Canvas */
+.signature-footer-info {
+  padding: 10px 14px;
+  background: var(--stride-surface-elevated);
+  border-top: 1px solid var(--stride-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.76rem;
+  color: var(--stride-text-muted);
+}
+
+.signer-preview-name {
+  font-weight: 700;
+  color: var(--stride-text);
+}
+
+/* Legal Consent Box */
+.legal-consent-card {
+  background: rgba(2, 132, 199, 0.08);
+  border: 1px solid rgba(2, 132, 199, 0.22);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.70rem;
+  color: var(--stride-text-muted);
+  line-height: 1.35;
+  margin-top: 6px;
+}
+
+.legal-consent-card .consent-icon {
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.legal-consent-card strong {
+  color: var(--stride-text);
+  font-weight: 600;
+}
+
+.fs-sig-disclaimer {
+  font-size: 0.70rem;
+  color: var(--stride-text-muted);
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .fs-sig-disclaimer {
+    display: inline-block;
+  }
+}
+
+/* Fullscreen Landscape Modal for Phones */
+.fullscreen-sig-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  min-height: -webkit-fill-available;
+  z-index: 200;
+  background: var(--stride-dark);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.fullscreen-sig-modal.active {
+  display: flex;
+}
+
+.fs-sig-header {
+  height: auto;
+  min-height: 48px;
+  background: var(--stride-surface);
+  border-bottom: 1px solid var(--stride-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  padding-top: max(8px, env(safe-area-inset-top, 8px));
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.fs-sig-title {
+  font-size: 0.90rem;
+  font-weight: 700;
+  color: var(--stride-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.fs-sig-body {
+  flex: 1;
+  position: relative;
+  background: var(--canvas-bg);
+  touch-action: none;
+}
+
+.fs-sig-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+
+.fs-sig-footer {
+  height: auto;
+  min-height: 52px;
+  background: var(--stride-surface);
+  border-top: 1px solid var(--stride-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.fs-footer-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sig-btn-approve {
+  background: var(--stride-red);
+  color: #ffffff !important;
+  border-color: var(--stride-red) !important;
+  font-weight: 700;
+  box-shadow: 0 2px 6px var(--stride-red-glow);
+}
+
+.sig-btn-approve:hover {
+  background: var(--stride-red-hover);
+}

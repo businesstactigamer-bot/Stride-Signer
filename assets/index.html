@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0f18">
+  <meta name="description" content="Stride Mobility Mobile ATP Patient Signature App for on-the-fly intake, ROI, and ABN document signing.">
+  <title>Stride Sign | Mobile ATP Patient Signature App</title>
+  
+  <!-- PWA & Mobile Web App Capabilities -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Stride Sign">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+
+  <!-- Modern Typography (Outfit & Inter) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/signature.css">
+</head>
+<body>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Sleek Compact Header -->
+  <header class="app-header">
+    <div class="brand-wrapper">
+      <img src="assets/logo.png" alt="Stride Mobility Logo" class="brand-logo">
+      <div class="brand-titles">
+        <span class="brand-title">Stride Sign</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="offline-pill" id="offlinePill" title="Tap to check offline status">
+        <span class="offline-dot"></span>
+        <span id="offlineText">Offline Ready</span>
+      </button>
+      <button type="button" class="atp-chip" id="atpEditBtn" title="Change ATP Email">
+        <span>✉️</span>
+        <span id="atpDisplayEmail">ATP Email</span>
+      </button>
+      <button type="button" class="icon-btn" id="themeToggleBtn" title="Toggle Theme" aria-label="Toggle Theme">
+        🌙
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Single-Screen Application Container -->
+  <main class="compact-app">
+
+    <!-- Patient Details Bar -->
+    <div class="patient-bar">
+      <div class="patient-inputs-row">
+        <div class="field-name">
+          <input type="text" id="patientNameInput" class="compact-input" placeholder="Patient Full Name *" autocomplete="off" autocorrect="off" required>
+        </div>
+        <div class="field-date">
+          <input type="text" id="dateInput" class="compact-input" placeholder="MM/DD/YYYY">
+        </div>
+      </div>
+      <div class="releasing-org-section">
+        <label for="releasingOrgInput" class="releasing-org-label">
+          Vendor Name
+        </label>
+        <input type="text" id="releasingOrgInput" class="compact-input input-releasing" placeholder="e.g. NPL Home Medical" title="Vendor Name">
+      </div>
+      <div class="poa-toggle-row">
+        <label class="checkbox-label poa-label">
+          <input type="checkbox" id="signerTypeRepToggle">
+          <span>POA / Legal Representative Signing</span>
+        </label>
+      </div>
+      <div id="repFieldsGroup" class="rep-fields-row hidden">
+        <input type="text" id="repNameInput" class="compact-input" placeholder="Representative Full Name">
+        <select id="repAuthorityInput" class="compact-input">
+          <option value="Power of Attorney (POA)">Power of Attorney (POA)</option>
+          <option value="Legal Guardian">Legal Guardian</option>
+          <option value="Healthcare Proxy">Healthcare Proxy</option>
+          <option value="Spouse">Spouse</option>
+          <option value="Parent">Parent</option>
+          <option value="Authorized Representative">Authorized Rep</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Document Checkbox System -->
+    <div class="docs-section">
+      <div class="docs-header">
+        <span class="section-label">Select Documents:</span>
+        <div class="docs-header-actions">
+          <button type="button" class="btn-preview-docs" id="previewDocsBtn" title="Review documents with patient">
+            👁️ Preview Document
+          </button>
+          <span class="docs-count" id="docSelectedCountBadge">1 Selected</span>
+        </div>
+      </div>
+      <div class="docs-checkbox-grid" id="docCheckboxesContainer">
+        <!-- Dynamic Checkboxes injected by app.js -->
+      </div>
+    </div>
+
+    <!-- Signature Pad Area -->
+    <div class="sig-section">
+      <div class="sig-header">
+        <span class="sig-label" id="sigLabel">Sign Below (Patient)</span>
+        <div class="sig-actions">
+          <button type="button" class="sig-btn" id="openFullscreenSigBtn" title="Landscape Fullscreen">📱 Fullscreen</button>
+          <button type="button" class="sig-btn" id="undoSigBtn" title="Undo stroke">↩️ Undo</button>
+          <button type="button" class="sig-btn sig-btn-danger" id="clearSigBtn" title="Clear pad">🔄 Clear</button>
+        </div>
+      </div>
+      <div class="sig-canvas-wrapper" id="canvasWrapper">
+        <canvas id="signatureCanvas" class="sig-canvas"></canvas>
+        <div class="signature-guide-line"></div>
+        <div class="signature-guide-marker">X</div>
+      </div>
+      <!-- Digital Signing Statement / Legal Consent Disclaimer -->
+      <div class="legal-consent-card">
+        <span class="consent-icon">⚖️</span>
+        <div class="consent-text">
+          <strong>Digital Signature Consent:</strong> By signing above, I certify that this electronic signature is the legally binding equivalent to my manual handwritten signature, and acknowledge review of the selected document(s).
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="actions-bar">
+      <button type="button" class="btn btn-primary" id="shareBtn">
+        ✉️ Email / Share Signed Docs
+      </button>
+      <div class="secondary-actions">
+        <button type="button" class="btn btn-secondary" id="downloadBtn" title="Save PDF directly">
+          📥 Save PDF
+        </button>
+        <button type="button" class="btn btn-secondary hidden" id="viewPdfBtn" title="Preview PDF">
+          👁️ View PDF
+        </button>
+        <button type="button" class="btn btn-outline" id="newPatientBtn" title="Next Patient">
+          🔄 Next
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Modal 1: ATP Profile Configuration -->
+  <div class="modal-overlay" id="atpModal" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>⚙️</span> ATP Profile Settings
+        </div>
+        <button type="button" class="icon-btn" id="closeAtpModalBtn" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-description">
+          Set your Stride ATP email once. Every signed patient document package will automatically be routed to you for Brightree upload.
+        </p>
+        <div class="form-group">
+          <label class="form-label" for="atpNameInput">ATP Full Name</label>
+          <input type="text" id="atpNameInput" class="form-input" placeholder="e.g. Tim Sanders, ATP">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="atpEmailInput">ATP Delivery Email *</label>
+          <input type="email" id="atpEmailInput" class="form-input" placeholder="tsanders@stridemobility.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="atpCcInput">CC Email / Intake Team (Optional)</label>
+          <input type="email" id="atpCcInput" class="form-input" placeholder="intake@stridemobility.com">
+        </div>
+
+        <!-- Offline Hardware Storage Verification -->
+        <div class="offline-settings-box">
+          <div class="offline-settings-header">
+            <span>📱 Phone Storage (Offline Mode)</span>
+            <span id="settingsOfflineBadge" style="color: #34d399;">Ready</span>
+          </div>
+          <p class="offline-settings-desc">
+            All 8 document templates, patient review previews, and signature engines are cached directly inside your phone's memory. Works with zero internet, in basements, and even if hosting links expire.
+          </p>
+          <div class="offline-btn-row">
+            <button type="button" class="btn btn-secondary" id="verifyOfflineBtn" style="font-size: 0.76rem; padding: 6px 12px; width: 100%;">
+              📥 Verify & Re-save to Device Storage
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('closeAtpModalBtn').click()">Cancel</button>
+        <button type="button" class="btn btn-primary" id="saveAtpBtn">Save Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Attachment Instructions / Direct Mailer Modal -->
+  <div class="modal-overlay" id="attachmentModal" role="dialog" aria-modal="true">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>📥</span> PDF Saved to Downloads
+        </div>
+        <button type="button" class="icon-btn" id="closeAttachmentModalBtn" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="attachment-notice-box">
+          <p><strong>Package Downloaded:</strong></p>
+          <p class="filename-tag" id="downloadedFilenameTag">Patient_Signed_Docs.pdf</p>
+          <div class="attachment-steps">
+            <p><strong>To send via Outlook / Email:</strong></p>
+            <ol>
+              <li>Tap <strong>"Open Email Draft"</strong> below.</li>
+              <li>Tap the <strong>Paperclip (📎)</strong> icon in your email app.</li>
+              <li>Select the downloaded PDF from your <strong>Downloads</strong> folder.</li>
+            </ol>
+          </div>
+          <p class="sync-status-text" id="serverSyncStatus">📁 Also saved to your laptop's <code>brightree_incoming</code> folder.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('closeAttachmentModalBtn').click()">Close</button>
+        <button type="button" class="btn btn-primary" id="openMailDraftBtn">✉️ Open Email Draft</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Fullscreen Landscape Signature Pad -->
+  <div class="fullscreen-sig-modal" id="fsSigModal">
+    <div class="fs-sig-header">
+      <div class="fs-sig-title">
+        <span>📱 Signature Mode</span>
+      </div>
+      <div class="sig-actions">
+        <button type="button" class="sig-btn" id="fsUndoBtn" title="Undo stroke">↩️ Undo</button>
+        <button type="button" class="sig-btn sig-btn-danger" id="fsClearBtn" title="Clear pad">🔄 Clear</button>
+        <button type="button" class="sig-btn sig-btn-approve" id="fsHeaderApproveBtn" title="Approve signature">✓ Approve</button>
+      </div>
+    </div>
+    <div class="fs-sig-body" id="fsCanvasWrapper">
+      <canvas id="fsCanvas" class="fs-sig-canvas"></canvas>
+      <div class="signature-guide-line"></div>
+      <div class="signature-guide-marker">X</div>
+    </div>
+    <div class="fs-sig-footer">
+      <button type="button" class="btn btn-secondary" id="fsCancelBtn">Cancel</button>
+      <span class="fs-sig-disclaimer">⚖️ Legally binding electronic signature under ESIGN Act</span>
+      <div class="fs-footer-right-actions">
+        <button type="button" class="btn btn-primary" id="fsDoneBtn">✓ Approve Signature</button>
+        <button type="button" class="btn btn-accent" id="fsApproveExportBtn">✉️ Approve & Export</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: In-App Stamped PDF Viewer -->
+  <div class="modal-overlay" id="pdfViewModal" role="dialog" aria-modal="true">
+    <div class="modal-card" style="max-width: 820px; height: 90vh;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>👁️</span> Stamped PDF Package Preview
+        </div>
+        <button type="button" class="icon-btn" id="closePdfViewModalBtn" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body" style="flex: 1; padding: 0;">
+        <iframe id="pdfViewFrame" style="width: 100%; height: 100%; min-height: 500px; border: none;"></iframe>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('closePdfViewModalBtn').click()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5: Patient Document Reviewer (Show Documents to Patient) -->
+  <div class="modal-overlay" id="docPreviewModal" role="dialog" aria-modal="true">
+    <div class="modal-card doc-preview-card">
+      <div class="modal-header doc-preview-header">
+        <div class="doc-preview-title-group">
+          <div class="modal-title" id="previewDocTitle">
+            <span>📄</span> Review Document
+          </div>
+          <div class="doc-preview-patient-chip" id="previewPatientChip">
+            Reviewing with Patient
+          </div>
+        </div>
+        <button type="button" class="icon-btn" id="closeDocPreviewBtn" aria-label="Close">✕</button>
+      </div>
+      
+      <!-- Document switcher tabs (shown if more than 1 doc selected) -->
+      <div class="doc-tabs-bar" id="docTabsBar"></div>
+
+      <!-- Multi-page controls (shown if document has > 1 page) -->
+      <div class="doc-page-bar hidden" id="docPageBar">
+        <button type="button" class="btn-page-nav" id="prevPageBtn">◀ Page 1</button>
+        <span class="page-indicator-text" id="pageIndicator">Page 1 of 2</span>
+        <button type="button" class="btn-page-nav" id="nextPageBtn">Page 2 ▶</button>
+      </div>
+
+      <!-- Scrollable Document Viewport -->
+      <div class="doc-viewport" id="docViewport">
+        <div class="doc-page-container">
+          <img id="previewDocImg" class="doc-page-img" alt="Official Document Page" src="" draggable="false">
+        </div>
+      </div>
+
+      <!-- Footer Navigation -->
+      <div class="modal-footer doc-preview-footer">
+        <div class="doc-nav-buttons">
+          <button type="button" class="btn btn-secondary" id="prevDocBtn">◀ Previous</button>
+          <button type="button" class="btn btn-secondary" id="nextDocBtn">Next ▶</button>
+        </div>
+        <button type="button" class="btn btn-primary" id="donePreviewBtn">
+          ✓ Done Reviewing (Sign)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts (Embedded Assets & Engines) -->
+  <script src="js/previews-data.js"></script>
+  <script src="js/embedded-templates.js"></script>
+  <script src="js/vendor/pdf-lib.min.js"></script>
+  <script src="js/templates.js"></script>
+  <script src="js/signature.js"></script>
+  <script src="js/pdf-generator.js"></script>
+  <script src="js/share-email.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "Stride Sign - Mobile ATP Intake",
+  "short_name": "Stride Sign",
+  "description": "Stride Mobility Field Patient Signature & Intake App",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0f18",
+  "theme_color": "#0a0f18",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
