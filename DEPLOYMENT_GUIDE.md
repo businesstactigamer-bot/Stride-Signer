@@ -75,3 +75,18 @@ If ATPs carry Windows laptops or Surface tablets in the field:
 2. Extract the ZIP to `C:\StrideSign` or Desktop.
 3. Double-click **`Start_Stride_Sign.bat`**.
 4. The local server starts and opens the browser automatically with full local saving to `brightree_incoming/`.
+
+---
+
+## 🛡️ Offline-First Architecture & Expired Link Immunity (v9 Engine)
+
+### Why Temporary Links Previously Failed:
+- If a temporary forwarding tunnel (like free ngrok, trial shares, or expiring links) expires, browsers typically attempt to fetch the original web address. When the link returns a "404 Not Found" or "Tunnel Expired" error, ordinary web apps break or overwrite their cache with the error screen.
+- Furthermore, if a user taps **"Add to Home Screen"** before large embedded template modules finish downloading, the cache was left incomplete.
+
+### How the Upgraded v9 Service Worker Solves This:
+1. **Cache-First Navigation**: Whenever an ATP taps the Stride Sign icon on their home screen, the Service Worker loads the HTML, CSS, JS, and all 8 PDF templates directly from the phone's internal storage in milliseconds. It does **not** wait for a network response and ignores expired link errors.
+2. **Expired Link Immunity**: The Service Worker will never overwrite cached code with server error pages (404, 502, or "link expired" splash screens).
+3. **Resilient Asset Caching**: Uses `Promise.allSettled` to download all 15 core modules independently, ensuring no single network hiccup halts offline installation.
+4. **Visual "Offline Ready" Indicator**: In the top-right header, a green **`🟢 Offline Ready`** badge confirms the phone has 100% of files stored.
+5. **In-App Device Verification Button**: In the **ATP Profile Settings (⚙️)**, tap **"📥 Verify & Re-save to Device Storage"** anytime to confirm that all 15 modules are safely stored in device hardware memory.
